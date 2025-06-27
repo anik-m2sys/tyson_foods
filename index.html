@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tyson Chicken – Update Gang Time</title>
+  <style>
+    :root {
+      --tyson-red: #E40B0E;
+      --tyson-yellow: #FED34C;
+      --tyson-blue: #002F6C;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #990000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    #tile {
+      width: 90%;
+      max-width: 400px;
+      background-color: #fff8f0;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+      text-align: center;
+      color: #333;
+      box-sizing: border-box;
+    }
+
+    header img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    h2 {
+      color: var(--tyson-red);
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      color: var(--tyson-blue);
+      font-weight: bold;
+      text-align: left;
+    }
+
+    input,
+    select,
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      margin-top: 20px;
+      background-color: var(--tyson-red);
+      color: white;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: var(--tyson-blue);
+    }
+
+    .response {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 4px;
+      display: none;
+      font-size: 0.95rem;
+    }
+
+    .response.success {
+      background-color: #e6ffed;
+      border: 1px solid #8ae38a;
+      color: #1d7a1d;
+    }
+
+    .response.error {
+      background-color: #ffe6e6;
+      border: 1px solid #e38a8a;
+      color: #a00000;
+    }
+
+    .response::before {
+      content: '';
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 8px;
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--tyson-blue);
+      border-top: 2px solid transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .response.success::before,
+    .response.error::before {
+      display: none;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width: 480px) {
+      #tile {
+        padding: 15px;
+      }
+
+      h2 {
+        font-size: 1.25rem;
+      }
+
+      input,
+      select,
+      button {
+        font-size: 0.95rem;
+        padding: 8px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="tile">
+    <header>
+      <img src="https://www.tysonfoods.com/sites/default/files/inline-images/TFlogo_Full%20color_RGB%20copy_0.png"
+        alt="Tyson Foods Logo">
+    </header>
+    <h2>Line Time Update</h2>
+    <form id="schedule-form">
+      <label for="date">Date:</label>
+      <input type="date" id="date" name="date" required>
+
+      <label for="duration">Duration (minutes):</label>
+      <input type="number" id="duration" name="duration" min="1" step="1" required>
+
+      <label for="group">Employee Group:</label>
+      <select id="group" name="group" required>
+        <option value="">-- Select Group --</option>
+        <option value="A">Group A</option>
+        <option value="B">Group B</option>
+        <option value="C">Group C</option>
+      </select>
+
+      <button type="submit">Submit Request</button>
+    </form>
+
+    <div id="response" class="response"></div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const dateInput = document.getElementById('date');
+      dateInput.value = new Date().toISOString().slice(0, 10);
+    });
+
+    document.getElementById('schedule-form').addEventListener('submit', e => {
+      e.preventDefault();
+
+      const form = e.target;
+      const responseDiv = document.getElementById('response');
+
+      responseDiv.textContent = '⏳ Submitting...';
+      responseDiv.className = 'response';
+      responseDiv.style.display = 'block';
+
+      const payload = {
+        date: document.getElementById('date').value,
+        duration: parseInt(document.getElementById('duration').value, 10),
+        group: document.getElementById('group').value
+      };
+
+      fetch('https://m2sys-api.cloudapper.com/api/v3/hook?identifier=e3d39b0aa4b243cf91c6c21d28ac3277', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+        .then(res => {
+          if (res.ok) {
+            responseDiv.textContent = '✅ Submitted successfully!';
+            responseDiv.className = 'response success';
+            form.reset();
+            document.getElementById('date').value = new Date().toISOString().slice(0, 10);
+          } else {
+            responseDiv.textContent = `❌ Submission failed: ${res.statusText}`;
+            responseDiv.className = 'response error';
+          }
+          responseDiv.style.display = 'block';
+        })
+        .catch(err => {
+          responseDiv.textContent = `❌ Error: ${err.message}`;
+          responseDiv.className = 'response error';
+          responseDiv.style.display = 'block';
+        });
+    });
+  </script>
+</body>
+
+</html>
